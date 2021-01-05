@@ -704,6 +704,7 @@ func (c *connection) startWriteLoop() {
 			c.appendBuffer(buf)
 
 			//todo: dynamic set loop nums
+		OUTER:
 			for i := 0; i < 10; i++ {
 				select {
 				case buf, ok := <-c.writeBufferChan:
@@ -712,7 +713,7 @@ func (c *connection) startWriteLoop() {
 					}
 					c.appendBuffer(buf)
 				default:
-					break
+					break OUTER
 				}
 			}
 

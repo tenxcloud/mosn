@@ -42,8 +42,9 @@ type ServerConfig struct {
 	// but lower write time costs accuracy.
 	OptimizeLocalWrite bool `json:"optimize_local_write,omitempty"`
 
-	//go processor number
-	Processor int `json:"processor,omitempty"`
+	// int go processor number
+	// string set auto means use real cpu core or limit cpu core
+	Processor interface{} `json:"processor,omitempty"`
 
 	Listeners []Listener `json:"listeners,omitempty"`
 

@@ -256,6 +256,10 @@ github.com/valyala/fasthttp/stackless
 github.com/valyala/fasttemplate
 # go.uber.org/atomic v1.7.0
 go.uber.org/atomic
+# go.uber.org/automaxprocs v1.3.0
+go.uber.org/automaxprocs/internal/cgroups
+go.uber.org/automaxprocs/internal/runtime
+go.uber.org/automaxprocs/maxprocs
 # go.uber.org/multierr v1.5.0
 go.uber.org/multierr
 # go.uber.org/zap v1.14.1
@@ -362,7 +366,7 @@ istio.io/gogo-genproto/googleapis/google/api
 istio.io/gogo-genproto/googleapis/google/rpc
 # k8s.io/klog v1.0.0
 k8s.io/klog
-# mosn.io/api v0.0.0-20201104063430-1abb4764d12a
+# mosn.io/api v0.0.0-20201117130017-91d17c14b8af
 mosn.io/api
 # mosn.io/pkg v0.0.0-20201228070559-80e9ae937bd5
 mosn.io/pkg/buffer
