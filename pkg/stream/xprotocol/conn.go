@@ -19,6 +19,7 @@ package xprotocol
 
 import (
 	"context"
+	"mosn.io/mosn/pkg/variable"
 	"strings"
 	"sync"
 	"time"
@@ -31,6 +32,7 @@ import (
 	"mosn.io/mosn/pkg/protocol/xprotocol"
 	"mosn.io/mosn/pkg/stream"
 	"mosn.io/mosn/pkg/trace"
+	"mosn.io/mosn/pkg/track"
 	"mosn.io/mosn/pkg/types"
 )
 
@@ -142,12 +144,18 @@ func (sc *streamConn) Dispatch(buf types.IoBuffer) {
 			return
 		}
 	}
-
 	// decode frames
 	for {
+		if buf.Len() == 0 {
+			return
+		}
 		// 1. get stream-level ctx with bufferCtx
 		streamCtx := sc.ctxManager.Get()
 
+		tracks := track.TrackBufferByContext(streamCtx).Tracks
+
+		tracks.Begin()
+		tracks.StartTrack(track.ProtocolDecode)
 		// 2. decode process
 		frame, err := sc.protocol.Decode(streamCtx, buf)
 
@@ -172,10 +180,13 @@ func (sc *streamConn) Dispatch(buf types.IoBuffer) {
 		// 2.3 handle frame
 		if frame != nil {
 			xframe, ok := frame.(xprotocol.XFrame)
+			// FIXME: Decode returns XFrame instead of interface{}
 			if !ok {
 				log.Proxy.Errorf(sc.ctx, "[stream] [xprotocol] conn %d, %v frame type not match : %T", sc.netConn.ID(), sc.netConn.RemoteAddr(), frame)
+				sc.netConn.Close(api.NoFlush, api.OnReadErrClose)
 				return
 			}
+			tracks.EndTrack(track.ProtocolDecode)
 			sc.handleFrame(streamCtx, xframe)
 		}
 
@@ -307,8 +318,8 @@ func (sc *streamConn) handleRequest(ctx context.Context, frame xprotocol.XFrame,
 		serviceName := aware.GetServiceName()
 		methodName := aware.GetMethodName()
 
-		frame.GetHeader().Set(types.HeaderRPCService, serviceName)
-		frame.GetHeader().Set(types.HeaderRPCMethod, methodName)
+		variable.SetVariableValue(ctx, types.HeaderRPCService, serviceName)
+		variable.SetVariableValue(ctx, types.HeaderRPCMethod, methodName)
 
 		if log.Proxy.GetLogLevel() >= log.DEBUG {
 			log.Proxy.Debugf(ctx, "[stream] [xprotocol] frame service aware, requestId = %v, serviceName = %v , methodName = %v", serverStream.id, serviceName, methodName)
@@ -340,6 +351,10 @@ func (sc *streamConn) handleResponse(ctx context.Context, frame xprotocol.XFrame
 	// stream exists, delete it
 	delete(sc.clientStreams, requestId)
 	sc.clientMutex.Unlock()
+
+	// response dispatch time
+	// store to client stream ctx
+	track.BindRequestAndResponse(clientStream.ctx, ctx)
 
 	// transmit buffer ctx
 	buffer.TransmitBufferPoolContext(clientStream.ctx, ctx)
