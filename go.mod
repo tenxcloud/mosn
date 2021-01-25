@@ -15,6 +15,7 @@ require (
 	github.com/envoyproxy/go-control-plane v0.9.4
 	github.com/ghodss/yaml v1.0.0
 	github.com/go-chi/chi v4.1.0+incompatible
+	github.com/go-zookeeper/zk v1.0.2
 	github.com/gogo/protobuf v1.3.1
 	github.com/golang/mock v1.4.4
 	github.com/golang/protobuf v1.3.5
@@ -55,5 +56,3 @@ require (
 	mosn.io/api v0.0.0-20201224034710-d1de63647a2e
 	mosn.io/pkg v0.0.0-20201228090327-daaf86502a50
 )
-
-replace github.com/envoyproxy/go-control-plane => github.com/envoyproxy/go-control-plane v0.9.4

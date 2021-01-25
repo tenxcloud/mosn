@@ -122,6 +122,10 @@ var (
 			}, cli.IntFlag{
 				Name:  "concurrency",
 				Usage: "concurrency, align to Istio startup params, currently useless",
+			}, cli.StringFlag{
+				Name:   "zookeeper, zk",
+				Usage:  "zookeeper address for dubbo",
+				EnvVar: "MOSN_ZOOKEEPER",
 			},
 		},
 		Action: func(c *cli.Context) error {
@@ -135,9 +139,15 @@ var (
 			podName := c.String("pod-name")
 			podNamespace := c.String("pod-namespace")
 			podIp := c.String("pod-ip")
+			zookeeper := c.String("zookeeper")
 
 			flagLogLevel := c.String("log-level")
 
+			if zookeeper != "" {
+				configmanager.RegisterConfigLoadFunc(configmanager.ZookeeperConfigLoad)
+				// ignore original configPath, generate config with zookeeper address
+				configPath = zookeeper
+			}
 			conf := configmanager.Load(configPath)
 			if mosnLogLevel, ok := flagToMosnLogLevel[flagLogLevel]; ok {
 				if mosnLogLevel == "OFF" {
